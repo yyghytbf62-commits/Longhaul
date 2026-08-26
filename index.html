@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Longhaul — holiday plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#26221c;
+    --ink-soft:#5a5347;
+    --paper:#f0e9d8;
+    --paper-alt:#e6ddc7;
+    --paper-card:#f7f2e6;
+    --navy:#1c2b33;
+    --navy-soft:#283d47;
+    --line:#c9bc98;
+    --line-soft:#ddd2b3;
+
+    --cruise:#2e6e7a;
+    --au:#b5502f;
+    --nz:#3f6b4a;
+    --usca:#3a5a8c;
+    --other:#6b4c7a;
+
+    --status-planned:#8a7433;
+    --status-booked:#2e6e7a;
+    --status-done:#5a5347;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(38,34,28,0.06) 1px, transparent 0);
+    background-size: 22px 22px;
+  }
+  .display{font-family:'Fraunces',serif;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  /* ---------- Header ---------- */
+  header{
+    background:var(--navy);
+    color:var(--paper);
+    padding:28px 20px 22px;
+    position:relative;
+    overflow:hidden;
+    border-bottom:4px solid var(--ink);
+  }
+  header::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image: repeating-linear-gradient(115deg, rgba(240,233,216,0.035) 0px, rgba(240,233,216,0.035) 1px, transparent 1px, transparent 14px);
+    pointer-events:none;
+  }
+  .header-inner{
+    max-width:980px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    position:relative;
+    z-index:1;
+  }
+  .compass{flex-shrink:0;width:46px;height:46px;}
+  .compass circle{fill:none;stroke:var(--paper);stroke-width:1.2;opacity:0.85;}
+  .compass path{fill:var(--paper);}
+  .compass .needle-south{fill:#8a7d5f;}
+  h1{
+    margin:0;
+    font-size:28px;
+    font-weight:700;
+    letter-spacing:0.3px;
+  }
+  .tagline{
+    margin:2px 0 0;
+    font-size:13px;
+    color:#c9c0a8;
+    letter-spacing:0.4px;
+  }
+  .header-actions{
+    max-width:980px;
+    margin:18px auto 0;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    position:relative;
+    z-index:1;
+  }
+  .btn{
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    border:1.5px solid transparent;
+    border-radius:3px;
+    padding:9px 14px;
+    cursor:pointer;
+    letter-spacing:0.2px;
+    transition:transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--paper);color:var(--navy);}
+  .btn-primary:hover{box-shadow:0 2px 0 0 #00000022;}
+  .btn-ghost{background:transparent;color:var(--paper);border-color:#c9c0a855;}
+  .btn-ghost:hover{border-color:var(--paper);}
+  .btn-small{padding:6px 10px;font-size:12px;}
+  .btn-danger{background:transparent;color:#b5502f;border-color:#b5502f66;}
+  .btn-danger:hover{background:#b5502f11;}
+
+  /* ---------- Tabs ---------- */
+  nav.tabs{
+    max-width:980px;
+    margin:0 auto;
+    display:flex;
+    border-bottom:2px solid var(--line);
+    padding:0 20px;
+  }
+  nav.tabs button{
+    font-family:'Fraunces',serif;
+    font-size:15px;
+    font-weight:600;
+    background:none;
+    border:none;
+    padding:14px 18px 12px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+    margin-bottom:-2px;
+  }
+  nav.tabs button.active{
+    color:var(--ink);
+    border-bottom-color:var(--au);
+  }
+
+  main{max-width:980px;margin:0 auto;padding:22px 20px 80px;}
+
+  /* ---------- Category filter chips ---------- */
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  .chip{
+    font-size:12px;
+    font-weight:600;
+    padding:6px 12px;
+    border-radius:20px;
+    border:1.5px solid var(--line);
+    background:var(--paper-card);
+    cursor:pointer;
+    color:var(--ink-soft);
+    display:flex;align-items:center;gap:6px;
+  }
+  .chip .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .chip.active .dot{outline:1.5px solid var(--paper);}
+
+  /* ---------- Idea cards ---------- */
+  .idea-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+    gap:14px;
+  }
+  .idea-card{
+    background:var(--paper-card);
+    border:1.5px solid var(--line);
+    border-radius:4px;
+    padding:16px;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .idea-card .cat-tag{
+    align-self:flex-start;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:0.6px;
+    text-transform:uppercase;
+    padding:3px 7px;
+    border-radius:2px;
+    color:#fff;
+  }
+  .idea-card h3{
+    margin:2px 0 0;
+    font-size:18px;
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    line-height:1.25;
+  }
+  .idea-card p.desc{
+    margin:0;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    line-height:1.5;
+  }
+  .meta-row{
+    display:flex;
+    gap:14px;
+    font-size:12px;
+    color:var(--ink-soft);
+    font-family:'JetBrains Mono',monospace;
+    flex-wrap:wrap;
+  }
+  .idea-card .card-actions{
+    margin-top:auto;
+    display:flex;
+    gap:8px;
+    padding-top:8px;
+    border-top:1px dashed var(--line-soft);
+  }
+  .empty-state{
+    text-align:center;
+    padding:50px 20px;
+    color:var(--ink-soft);
+    border:1.5px dashed var(--line);
+    border-radius:6px;
+    background:var(--paper-card);
+  }
+  .empty-state .display{font-size:19px;color:var(--ink);display:block;margin-bottom:6px;}
+
+  /* ---------- Plan / timeline ---------- */
+  .stats-bar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+  .stat{
+    background:var(--navy);
+    color:var(--paper);
+    border-radius:4px;
+    padding:10px 16px;
+    min-width:110px;
+  }
+  .stat .num{font-family:'Fraunces',serif;font-size:22px;font-weight:700;display:block;}
+  .stat .lbl{font-size:11px;letter-spacing:0.4px;color:#c9c0a8;text-transform:uppercase;}
+
+  .timeline{position:relative;padding-left:20px;}
+  .timeline::before{
+    content:"";
+    position:absolute;
+    left:5px;top:6px;bottom:6px;
+    width:0;
+    border-left:2px dashed var(--line);
+  }
+  .year-group{margin-bottom:26px;}
+  .year-label{
+    font-family:'Fraunces',serif;
+    font-size:22px;
+    font-weight:700;
+    margin:0 0 12px -20px;
+    padding-left:20px;
+    position:relative;
+  }
+  .year-label::before{
+    content:"";
+    position:absolute;
+    left:1px;top:8px;
+    width:9px;height:9px;
+    border-radius:50%;
+    background:var(--ink);
+  }
+  .month-group{margin-bottom:16px;}
+  .month-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    color:var(--ink-soft);
+    margin:0 0 8px;
+  }
+  .plan-entry{
+    background:var(--paper-card);
+    border:1.5px solid var(--line);
+    border-radius:4px;
+    padding:14px 16px;
+    margin-bottom:10px;
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+  }
+  .stamp{
+    flex-shrink:0;
+    width:52px;height:52px;
+    border-radius:50%;
+    border:2px dashed currentColor;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:0.3px;
+    transform:rotate(-6deg);
+    text-align:center;
+    line-height:1.1;
+    padding:2px;
+  }
+  .plan-entry-body{flex:1;min-width:0;}
+  .plan-entry-body h4{
+    margin:0 0 3px;
+    font-family:'Fraunces',serif;
+    font-size:17px;
+    font-weight:600;
+  }
+  .plan-entry-body .meta-row{margin-bottom:6px;}
+  .plan-entry-body .notes{font-size:13px;color:var(--ink-soft);margin:0 0 8px;line-height:1.45;}
+  .status-select{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    border-radius:12px;
+    padding:4px 10px;
+    border:1.5px solid var(--line);
+    background:var(--paper);
+    cursor:pointer;
+  }
+  .entry-actions{display:flex;gap:8px;margin-top:6px;}
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(28,43,51,0.55);
+    z-index:50;
+    align-items:flex-start;
+    justify-content:center;
+    padding:30px 16px;
+    overflow-y:auto;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal{
+    background:var(--paper);
+    border-radius:6px;
+    max-width:480px;
+    width:100%;
+    padding:24px;
+    border:1.5px solid var(--ink);
+    box-shadow:0 10px 30px rgba(0,0,0,0.25);
+  }
+  .modal h2{margin:0 0 16px;font-family:'Fraunces',serif;font-size:21px;}
+  .field{margin-bottom:13px;}
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+    letter-spacing:0.2px;
+  }
+  .field input, .field select, .field textarea{
+    width:100%;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    padding:9px 10px;
+    border:1.5px solid var(--line);
+    border-radius:3px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .field textarea{resize:vertical;min-height:60px;}
+  .field-row{display:flex;gap:10px;}
+  .field-row .field{flex:1;}
+  .modal-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    margin-top:18px;
+    padding-top:14px;
+    border-top:1px dashed var(--line-soft);
+  }
+
+  .file-input{display:none;}
+
+  footer{
+    text-align:center;
+    padding:24px 20px 50px;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+
+  @media (max-width:520px){
+    .field-row{flex-direction:column;}
+    h1{font-size:23px;}
+    .plan-entry{flex-direction:column;}
+    .stamp{transform:rotate(-4deg);}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <svg class="compass" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="46"/>
+      <circle cx="50" cy="50" r="38"/>
+      <path d="M50 8 L58 50 L50 46 L42 50 Z"/>
+      <path class="needle-south" d="M50 92 L58 50 L50 54 L42 50 Z"/>
+    </svg>
+    <div>
+      <h1>Longhaul</h1>
+      <p class="tagline">the someday list, plotted against the calendar</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-primary" id="btn-add-idea">+ New idea</button>
+    <button class="btn btn-ghost btn-small" id="btn-export">Export JSON</button>
+    <button class="btn btn-ghost btn-small" id="btn-import">Import JSON</button>
+    <input type="file" id="file-import" class="file-input" accept="application/json">
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="bank">Idea Bank</button>
+  <button class="tab-btn" data-tab="plan">The Plan</button>
+</nav>
+
+<main>
+
+  <!-- IDEA BANK -->
+  <section id="tab-bank">
+    <div class="chips" id="bank-chips"></div>
+    <div class="idea-grid" id="idea-grid"></div>
+  </section>
+
+  <!-- PLAN -->
+  <section id="tab-plan" style="display:none;">
+    <div class="stats-bar" id="stats-bar"></div>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+</main>
+
+<footer>Everything here lives only in this browser's storage. Export a backup before clearing site data.</footer>
+
+<!-- Idea modal -->
+<div class="modal-backdrop" id="idea-modal">
+  <div class="modal">
+    <h2 id="idea-modal-title">New idea</h2>
+    <input type="hidden" id="idea-id">
+    <div class="field">
+      <label for="idea-title">Title</label>
+      <input type="text" id="idea-title" placeholder="e.g. Kimberley coastal cruise">
+    </div>
+    <div class="field">
+      <label for="idea-category">Category</label>
+      <select id="idea-category">
+        <option value="cruise">Cruise</option>
+        <option value="au">Australian road trip</option>
+        <option value="nz">New Zealand road trip</option>
+        <option value="usca">US / Canada road trip</option>
+        <option value="other">Other destination</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="idea-desc">Description / why it's on the list</label>
+      <textarea id="idea-desc" placeholder="Notes, must-see stops, who suggested it..."></textarea>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="idea-cost">Rough cost</label>
+        <input type="text" id="idea-cost" placeholder="e.g. $4,500pp">
+      </div>
+      <div class="field">
+        <label for="idea-duration">Duration</label>
+        <input type="text" id="idea-duration" placeholder="e.g. 12 nights">
+      </div>
+    </div>
+    <div class="field">
+      <label for="idea-link">Link (optional)</label>
+      <input type="text" id="idea-link" placeholder="https://...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="color:var(--ink);border-color:var(--line);" id="idea-cancel">Cancel</button>
+      <button class="btn btn-danger" id="idea-delete" style="display:none;">Delete idea</button>
+      <button class="btn btn-primary" style="background:var(--ink);color:var(--paper);" id="idea-save">Save idea</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add-to-plan / edit-plan modal -->
+<div class="modal-backdrop" id="plan-modal">
+  <div class="modal">
+    <h2 id="plan-modal-title">Add to the plan</h2>
+    <input type="hidden" id="plan-id">
+    <input type="hidden" id="plan-idea-id">
+    <div class="field">
+      <label for="plan-title">Title</label>
+      <input type="text" id="plan-title">
+    </div>
+    <div class="field">
+      <label for="plan-category">Category</label>
+      <select id="plan-category">
+        <option value="cruise">Cruise</option>
+        <option value="au">Australian road trip</option>
+        <option value="nz">New Zealand road trip</option>
+        <option value="usca">US / Canada road trip</option>
+        <option value="other">Other destination</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="plan-month">Month</label>
+        <select id="plan-month">
+          <option value="1">January</option><option value="2">February</option>
+          <option value="3">March</option><option value="4">April</option>
+          <option value="5">May</option><option value="6">June</option>
+          <option value="7">July</option><option value="8">August</option>
+          <option value="9">September</option><option value="10">October</option>
+          <option value="11">November</option><option value="12">December</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="plan-year">Year</label>
+        <input type="number" id="plan-year" min="2026" max="2060" step="1">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="plan-cost">Rough cost</label>
+        <input type="text" id="plan-cost" placeholder="e.g. $4,500pp">
+      </div>
+      <div class="field">
+        <label for="plan-duration">Duration</label>
+        <input type="text" id="plan-duration" placeholder="e.g. 12 nights">
+      </div>
+    </div>
+    <div class="field">
+      <label for="plan-notes">Notes</label>
+      <textarea id="plan-notes" placeholder="Bookings, flights, anything to remember"></textarea>
+    </div>
+    <div class="field">
+      <label for="plan-status">Status</label>
+      <select id="plan-status">
+        <option value="planned">Planned</option>
+        <option value="booked">Booked</option>
+        <option value="done">Done</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="color:var(--ink);border-color:var(--line);" id="plan-cancel">Cancel</button>
+      <button class="btn btn-danger" id="plan-delete" style="display:none;">Remove from plan</button>
+      <button class="btn btn-primary" style="background:var(--ink);color:var(--paper);" id="plan-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "longhaul.v1";
+  var CATS = {
+    cruise: {label:"Cruise", short:"CRUISE", color:"var(--cruise)"},
+    au:     {label:"Australian road trip", short:"AU RD", color:"var(--au)"},
+    nz:     {label:"New Zealand road trip", short:"NZ RD", color:"var(--nz)"},
+    usca:   {label:"US / Canada road trip", short:"US/CA", color:"var(--usca)"},
+    other:  {label:"Other destination", short:"OTHER", color:"var(--other)"}
+  };
+  var MONTHS = ["","January","February","March","April","May","June","July","August","September","October","November","December"];
+
+  var state = load();
+  var activeCatFilter = "all";
+  var activeTab = "bank";
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return {version:1, ideas:[], plan:[]};
+      var parsed = JSON.parse(raw);
+      if(!parsed.ideas) parsed.ideas = [];
+      if(!parsed.plan) parsed.plan = [];
+      if(!parsed.version) parsed.version = 1;
+      return parsed;
+    }catch(e){
+      console.error("Could not read saved plan, starting fresh.", e);
+      return {version:1, ideas:[], plan:[]};
+    }
+  }
+
+  function save(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function uid(){
+    return Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  }
+
+  function escapeHtml(str){
+    if(str===undefined || str===null) return "";
+    return String(str)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+
+  function parseCostNumber(costStr){
+    if(!costStr) return null;
+    var m = String(costStr).replace(/,/g,"").match(/(\d+(\.\d+)?)\s*(k)?/i);
+    if(!m) return null;
+    var n = parseFloat(m[1]);
+    if(m[3]) n *= 1000;
+    return isNaN(n) ? null : n;
+  }
+
+  function formatCost(n){
+    return "$" + Math.round(n).toLocaleString();
+  }
+
+  /* ---------------- Tabs ---------------- */
+  document.querySelectorAll(".tab-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      activeTab = btn.dataset.tab;
+      document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.toggle("active", b===btn);});
+      document.getElementById("tab-bank").style.display = activeTab==="bank" ? "" : "none";
+      document.getElementById("tab-plan").style.display = activeTab==="plan" ? "" : "none";
+      if(activeTab==="plan") renderPlan();
+    });
+  });
+
+  /* ---------------- Idea Bank rendering ---------------- */
+  function renderChips(){
+    var el = document.getElementById("bank-chips");
+    var html = '<div class="chip'+(activeCatFilter==="all"?" active":"")+'" data-cat="all"><span class="dot" style="background:var(--ink)"></span>All</div>';
+    Object.keys(CATS).forEach(function(key){
+      var c = CATS[key];
+      html += '<div class="chip'+(activeCatFilter===key?" active":"")+'" data-cat="'+key+'"><span class="dot" style="background:'+c.color+'"></span>'+c.label+'</div>';
+    });
+    el.innerHTML = html;
+    el.querySelectorAll(".chip").forEach(function(chip){
+      chip.addEventListener("click", function(){
+        activeCatFilter = chip.dataset.cat;
+        renderChips();
+        renderIdeas();
+      });
+    });
+  }
+
+  function renderIdeas(){
+    var grid = document.getElementById("idea-grid");
+    var ideas = state.ideas.filter(function(i){
+      return activeCatFilter==="all" || i.category===activeCatFilter;
+    });
+    if(ideas.length===0){
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">'+
+        '<span class="display">Nothing here yet</span>'+
+        'Start dropping in trip ideas — cruises, road trips, wildcards — and build the shortlist.'+
+        '</div>';
+      return;
+    }
+    ideas.sort(function(a,b){ return (a.title||"").localeCompare(b.title||""); });
+    grid.innerHTML = ideas.map(function(idea){
+      var c = CATS[idea.category] || CATS.other;
+      var meta = [];
+      if(idea.duration) meta.push('<span>'+escapeHtml(idea.duration)+'</span>');
+      if(idea.cost) meta.push('<span>'+escapeHtml(idea.cost)+'</span>');
+      var linkHtml = idea.link ? '<a href="'+escapeHtml(idea.link)+'" target="_blank" rel="noopener" style="font-size:12px;color:'+c.color+';">Link ↗</a>' : '';
+      return '<div class="idea-card">'+
+        '<span class="cat-tag" style="background:'+c.color+'">'+c.short+'</span>'+
+        '<h3>'+escapeHtml(idea.title)+'</h3>'+
+        (idea.description ? '<p class="desc">'+escapeHtml(idea.description)+'</p>' : '')+
+        (meta.length ? '<div class="meta-row">'+meta.join("")+'</div>' : '')+
+        linkHtml+
+        '<div class="card-actions">'+
+          '<button class="btn btn-small btn-primary" style="background:var(--ink);color:var(--paper);" data-action="add-to-plan" data-id="'+idea.id+'">Add to plan</button>'+
+          '<button class="btn btn-small btn-ghost" style="color:var(--ink);border-color:var(--line);" data-action="edit-idea" data-id="'+idea.id+'">Edit</button>'+
+        '</div>'+
+      '</div>';
+    }).join("");
+  }
+
+  document.getElementById("idea-grid").addEventListener("click", function(e){
+    var btn = e.target.closest("button");
+    if(!btn) return;
+    var id = btn.dataset.id;
+    var idea = state.ideas.find(function(i){ return i.id===id; });
+    if(!idea) return;
+    if(btn.dataset.action==="edit-idea"){
+      openIdeaModal(idea);
+    } else if(btn.dataset.action==="add-to-plan"){
+      openPlanModal(null, idea);
+    }
+  });
+
+  /* ---------------- Idea modal ---------------- */
+  var ideaModal = document.getElementById("idea-modal");
+  function openIdeaModal(idea){
+    document.getElementById("idea-modal-title").textContent = idea ? "Edit idea" : "New idea";
+    document.getElementById("idea-id").value = idea ? idea.id : "";
+    document.getElementById("idea-title").value = idea ? idea.title : "";
+    document.getElementById("idea-category").value = idea ? idea.category : "au";
+    document.getElementById("idea-desc").value = idea ? (idea.description||"") : "";
+    document.getElementById("idea-cost").value = idea ? (idea.cost||"") : "";
+    document.getElementById("idea-duration").value = idea ? (idea.duration||"") : "";
+    document.getElementById("idea-link").value = idea ? (idea.link||"") : "";
+    document.getElementById("idea-delete").style.display = idea ? "" : "none";
+    ideaModal.classList.add("open");
+    document.getElementById("idea-title").focus();
+  }
+  function closeIdeaModal(){ ideaModal.classList.remove("open"); }
+
+  document.getElementById("btn-add-idea").addEventListener("click", function(){ openIdeaModal(null); });
+  document.getElementById("idea-cancel").addEventListener("click", closeIdeaModal);
+  ideaModal.addEventListener("click", function(e){ if(e.target===ideaModal) closeIdeaModal(); });
+
+  document.getElementById("idea-save").addEventListener("click", function(){
+    var title = document.getElementById("idea-title").value.trim();
+    if(!title){ document.getElementById("idea-title").focus(); return; }
+    var id = document.getElementById("idea-id").value;
+    var data = {
+      category: document.getElementById("idea-category").value,
+      title: title,
+      description: document.getElementById("idea-desc").value.trim(),
+      cost: document.getElementById("idea-cost").value.trim(),
+      duration: document.getElementById("idea-duration").value.trim(),
+      link: document.getElementById("idea-link").value.trim()
+    };
+    if(id){
+      var existing = state.ideas.find(function(i){ return i.id===id; });
+      Object.assign(existing, data);
+    } else {
+      data.id = uid();
+      data.createdAt = new Date().toISOString();
+      state.ideas.push(data);
+    }
+    save();
+    closeIdeaModal();
+    renderIdeas();
+  });
+
+  document.getElementById("idea-delete").addEventListener("click", function(){
+    var id = document.getElementById("idea-id").value;
+    if(!id) return;
+    if(!confirm("Delete this idea? Any plan entries linked to it will keep their own copy of the details.")) return;
+    state.ideas = state.ideas.filter(function(i){ return i.id!==id; });
+    save();
+    closeIdeaModal();
+    renderIdeas();
+  });
+
+  /* ---------------- Plan / timeline rendering ---------------- */
+  function renderStats(){
+    var el = document.getElementById("stats-bar");
+    var total = state.plan.length;
+    var byYear = {};
+    state.plan.forEach(function(p){
+      byYear[p.year] = byYear[p.year] || {count:0, cost:0};
+      byYear[p.year].count++;
+      var n = parseCostNumber(p.cost);
+      if(n) byYear[p.year].cost += n;
+    });
+    var years = Object.keys(byYear).sort();
+    var html = '<div class="stat"><span class="num">'+total+'</span><span class="lbl">Trips planned</span></div>';
+    years.forEach(function(y){
+      var costLabel = byYear[y].cost ? formatCost(byYear[y].cost) : "—";
+      html += '<div class="stat"><span class="num">'+y+'</span><span class="lbl">'+byYear[y].count+' trip'+(byYear[y].count>1?"s":"")+' · approx '+costLabel+'</span></div>';
+    });
+    el.innerHTML = total ? html : "";
+  }
+
+  function renderPlan(){
+    renderStats();
+    var el = document.getElementById("timeline");
+    if(state.plan.length===0){
+      el.innerHTML = '<div class="empty-state">'+
+        '<span class="display">The plan is empty</span>'+
+        'Add an idea to a month and year from the Idea Bank, or add something new directly here.'+
+        '<div style="margin-top:14px;"><button class="btn btn-primary" style="background:var(--ink);color:var(--paper);" id="empty-add-plan">+ Add to the plan</button></div>'+
+        '</div>';
+      var eb = document.getElementById("empty-add-plan");
+      if(eb) eb.addEventListener("click", function(){ openPlanModal(null, null); });
+      return;
+    }
+    var grouped = {};
+    state.plan.forEach(function(p){
+      grouped[p.year] = grouped[p.year] || {};
+      grouped[p.year][p.month] = grouped[p.year][p.month] || [];
+      grouped[p.year][p.month].push(p);
+    });
+    var years = Object.keys(grouped).sort();
+    var html = "";
+    years.forEach(function(y){
+      html += '<div class="year-group"><h2 class="year-label">'+y+'</h2>';
+      var months = Object.keys(grouped[y]).sort(function(a,b){return a-b;});
+      months.forEach(function(m){
+        html += '<div class="month-group"><div class="month-label">'+MONTHS[m]+'</div>';
+        grouped[y][m].sort(function(a,b){ return (a.title||"").localeCompare(b.title||""); }).forEach(function(p){
+          var c = CATS[p.category] || CATS.other;
+          var meta = [];
+          if(p.duration) meta.push('<span>'+escapeHtml(p.duration)+'</span>');
+          if(p.cost) meta.push('<span>'+escapeHtml(p.cost)+'</span>');
+          html += '<div class="plan-entry">'+
+            '<div class="stamp" style="color:'+c.color+'">'+c.short+'</div>'+
+            '<div class="plan-entry-body">'+
+              '<h4>'+escapeHtml(p.title)+'</h4>'+
+              (meta.length ? '<div class="meta-row">'+meta.join("")+'</div>' : '')+
+              (p.notes ? '<p class="notes">'+escapeHtml(p.notes)+'</p>' : '')+
+              '<select class="status-select" data-id="'+p.id+'" style="color:'+ (p.status==="booked"?"var(--status-booked)":p.status==="done"?"var(--status-done)":"var(--status-planned)") +';border-color:currentColor;">'+
+                '<option value="planned"'+(p.status==="planned"?" selected":"")+'>Planned</option>'+
+                '<option value="booked"'+(p.status==="booked"?" selected":"")+'>Booked</option>'+
+                '<option value="done"'+(p.status==="done"?" selected":"")+'>Done</option>'+
+              '</select>'+
+              '<div class="entry-actions">'+
+                '<button class="btn btn-small btn-ghost" style="color:var(--ink);border-color:var(--line);" data-action="edit-plan" data-id="'+p.id+'">Edit</button>'+
+              '</div>'+
+            '</div>'+
+          '</div>';
+        });
+        html += '</div>';
+      });
+      html += '</div>';
+    });
+    el.innerHTML = html;
+
+    el.querySelectorAll(".status-select").forEach(function(sel){
+      sel.addEventListener("change", function(){
+        var p = state.plan.find(function(x){ return x.id===sel.dataset.id; });
+        if(p){ p.status = sel.value; save(); renderPlan(); }
+      });
+    });
+    el.querySelectorAll('[data-action="edit-plan"]').forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var p = state.plan.find(function(x){ return x.id===btn.dataset.id; });
+        if(p) openPlanModal(p, null);
+      });
+    });
+  }
+
+  /* ---------------- Plan modal ---------------- */
+  var planModal = document.getElementById("plan-modal");
+  function openPlanModal(planEntry, fromIdea){
+    var now = new Date();
+    document.getElementById("plan-modal-title").textContent = planEntry ? "Edit plan entry" : "Add to the plan";
+    document.getElementById("plan-id").value = planEntry ? planEntry.id : "";
+    document.getElementById("plan-idea-id").value = planEntry ? (planEntry.ideaId||"") : (fromIdea ? fromIdea.id : "");
+    document.getElementById("plan-title").value = planEntry ? planEntry.title : (fromIdea ? fromIdea.title : "");
+    document.getElementById("plan-category").value = planEntry ? planEntry.category : (fromIdea ? fromIdea.category : "au");
+    document.getElementById("plan-month").value = planEntry ? planEntry.month : (now.getMonth()+1);
+    document.getElementById("plan-year").value = planEntry ? planEntry.year : now.getFullYear();
+    document.getElementById("plan-cost").value = planEntry ? (planEntry.cost||"") : (fromIdea ? (fromIdea.cost||"") : "");
+    document.getElementById("plan-duration").value = planEntry ? (planEntry.duration||"") : (fromIdea ? (fromIdea.duration||"") : "");
+    document.getElementById("plan-notes").value = planEntry ? (planEntry.notes||"") : "";
+    document.getElementById("plan-status").value = planEntry ? planEntry.status : "planned";
+    document.getElementById("plan-delete").style.display = planEntry ? "" : "none";
+    planModal.classList.add("open");
+    document.getElementById("plan-title").focus();
+  }
+  function closePlanModal(){ planModal.classList.remove("open"); }
+
+  document.getElementById("plan-cancel").addEventListener("click", closePlanModal);
+  planModal.addEventListener("click", function(e){ if(e.target===planModal) closePlanModal(); });
+
+  document.getElementById("plan-save").addEventListener("click", function(){
+    var title = document.getElementById("plan-title").value.trim();
+    if(!title){ document.getElementById("plan-title").focus(); return; }
+    var id = document.getElementById("plan-id").value;
+    var data = {
+      ideaId: document.getElementById("plan-idea-id").value || null,
+      title: title,
+      category: document.getElementById("plan-category").value,
+      month: parseInt(document.getElementById("plan-month").value,10),
+      year: parseInt(document.getElementById("plan-year").value,10) || new Date().getFullYear(),
+      cost: document.getElementById("plan-cost").value.trim(),
+      duration: document.getElementById("plan-duration").value.trim(),
+      notes: document.getElementById("plan-notes").value.trim(),
+      status: document.getElementById("plan-status").value
+    };
+    if(id){
+      var existing = state.plan.find(function(p){ return p.id===id; });
+      Object.assign(existing, data);
+    } else {
+      data.id = uid();
+      data.createdAt = new Date().toISOString();
+      state.plan.push(data);
+    }
+    save();
+    closePlanModal();
+    renderPlan();
+  });
+
+  document.getElementById("plan-delete").addEventListener("click", function(){
+    var id = document.getElementById("plan-id").value;
+    if(!id) return;
+    if(!confirm("Remove this entry from the plan? The idea (if linked) stays in the Idea Bank.")) return;
+    state.plan = state.plan.filter(function(p){ return p.id!==id; });
+    save();
+    closePlanModal();
+    renderPlan();
+  });
+
+  /* ---------------- Export / Import ---------------- */
+  document.getElementById("btn-export").addEventListener("click", function(){
+    var blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    var stamp = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = "longhaul-plan-"+stamp+".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("btn-import").addEventListener("click", function(){
+    document.getElementById("file-import").click();
+  });
+
+  document.getElementById("file-import").addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(evt){
+      try{
+        var imported = JSON.parse(evt.target.result);
+        if(!imported.ideas || !imported.plan) throw new Error("File doesn't look like a Longhaul export.");
+        var mode = confirm("Click OK to MERGE this file with your current plan, or Cancel to REPLACE your current plan entirely.");
+        if(mode){
+          var existingIdeaIds = new Set(state.ideas.map(function(i){return i.id;}));
+          var existingPlanIds = new Set(state.plan.map(function(p){return p.id;}));
+          imported.ideas.forEach(function(i){ if(!existingIdeaIds.has(i.id)) state.ideas.push(i); });
+          imported.plan.forEach(function(p){ if(!existingPlanIds.has(p.id)) state.plan.push(p); });
+        } else {
+          state = {version:1, ideas:imported.ideas, plan:imported.plan};
+        }
+        save();
+        renderChips();
+        renderIdeas();
+        renderPlan();
+        alert("Import complete.");
+      }catch(err){
+        alert("Couldn't read that file: " + err.message);
+      }
+      document.getElementById("file-import").value = "";
+    };
+    reader.readAsText(file);
+  });
+
+  /* ---------------- Init ---------------- */
+  renderChips();
+  renderIdeas();
+  renderPlan();
+
+})();
+</script>
+
+</body>
+</html>
