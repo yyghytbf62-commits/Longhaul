@@ -211,6 +211,23 @@
     padding-top:8px;
     border-top:1px dashed var(--line-soft);
   }
+  .idea-card.in-plan{
+    border-color:var(--status-planned);
+    border-style:dashed;
+    background:#f7f2e6;
+  }
+  .in-plan-badge{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.3px;
+    color:var(--status-planned);
+    background:#f0e6c8;
+    border:1px dashed var(--status-planned);
+    border-radius:3px;
+    padding:3px 8px;
+    align-self:flex-start;
+  }
   .empty-state{
     text-align:center;
     padding:50px 20px;
@@ -641,10 +658,25 @@
     });
   }
 
+  function getIdeaPlanInfo(ideaId){
+    var entries = state.plan.filter(function(p){ return p.ideaId===ideaId; });
+    if(entries.length===0) return null;
+    var committed = entries.filter(function(p){ return p.status==="booked" || p.status==="done"; });
+    if(committed.length===entries.length) return {status:"committed", entries:committed};
+    var upcoming = entries.filter(function(p){ return p.status==="planned"; });
+    upcoming.sort(function(a,b){ return (a.year-b.year) || (a.month-b.month); });
+    return {status:"planned", entries:upcoming};
+  }
+
   function renderIdeas(){
     var grid = document.getElementById("idea-grid");
     var ideas = state.ideas.filter(function(i){
       return activeCatFilter==="all" || i.category===activeCatFilter;
+    });
+    // Hide ideas whose only plan entries are booked or done — the idea has done its job.
+    ideas = ideas.filter(function(i){
+      var info = getIdeaPlanInfo(i.id);
+      return !(info && info.status==="committed");
     });
     if(ideas.length===0){
       grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">'+
@@ -660,14 +692,22 @@
       if(idea.duration) meta.push('<span>'+escapeHtml(idea.duration)+'</span>');
       if(idea.cost) meta.push('<span>'+escapeHtml(idea.cost)+'</span>');
       var linkHtml = idea.link ? '<a href="'+escapeHtml(idea.link)+'" target="_blank" rel="noopener" style="font-size:12px;color:'+c.color+';">Link ↗</a>' : '';
-      return '<div class="idea-card">'+
+      var planInfo = getIdeaPlanInfo(idea.id);
+      var badgeHtml = "";
+      if(planInfo && planInfo.status==="planned"){
+        var dateLabels = planInfo.entries.map(function(e){ return MONTHS[e.month].slice(0,3)+" "+e.year; }).join(", ");
+        badgeHtml = '<span class="in-plan-badge">IN THE PLAN — '+escapeHtml(dateLabels)+'</span>';
+      }
+      var addBtnLabel = planInfo && planInfo.status==="planned" ? "Add another date" : "Add to plan";
+      return '<div class="idea-card'+(planInfo && planInfo.status==="planned" ? " in-plan" : "")+'">'+
         '<span class="cat-tag" style="background:'+c.color+'">'+c.short+'</span>'+
+        badgeHtml+
         '<h3>'+escapeHtml(idea.title)+'</h3>'+
         (idea.description ? '<p class="desc">'+escapeHtml(idea.description)+'</p>' : '')+
         (meta.length ? '<div class="meta-row">'+meta.join("")+'</div>' : '')+
         linkHtml+
         '<div class="card-actions">'+
-          '<button class="btn btn-small btn-primary" style="background:var(--ink);color:var(--paper);" data-action="add-to-plan" data-id="'+idea.id+'">Add to plan</button>'+
+          '<button class="btn btn-small btn-primary" style="background:var(--ink);color:var(--paper);" data-action="add-to-plan" data-id="'+idea.id+'">'+addBtnLabel+'</button>'+
           '<button class="btn btn-small btn-ghost" style="color:var(--ink);border-color:var(--line);" data-action="edit-idea" data-id="'+idea.id+'">Edit</button>'+
         '</div>'+
       '</div>';
@@ -820,7 +860,7 @@
     el.querySelectorAll(".status-select").forEach(function(sel){
       sel.addEventListener("change", function(){
         var p = state.plan.find(function(x){ return x.id===sel.dataset.id; });
-        if(p){ p.status = sel.value; save(); renderPlan(); }
+        if(p){ p.status = sel.value; save(); renderPlan(); renderIdeas(); }
       });
     });
     el.querySelectorAll('[data-action="edit-plan"]').forEach(function(btn){
@@ -881,6 +921,7 @@
     save();
     closePlanModal();
     renderPlan();
+    renderIdeas();
   });
 
   document.getElementById("plan-delete").addEventListener("click", function(){
@@ -891,6 +932,7 @@
     save();
     closePlanModal();
     renderPlan();
+    renderIdeas();
   });
 
   /* ---------------- Export / Import ---------------- */
